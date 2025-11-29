@@ -136,6 +136,7 @@ export default function MapPage() {
 
   const handleRouteSelect = (idx) => {
     setSelectedRouteIdx(idx);
+    alert(`Route ${idx + 1} selected!`); // Simple alert for feedback
   };
 
   return (
@@ -336,20 +337,20 @@ export default function MapPage() {
           </div>
         </div>
 
-        {/* INPUTS SECTION */}
-        <div style={{ background: "white", padding: "20px", borderRadius: "12px", marginBottom: "20px" }}>
+        {/* POINT SELECTION CONTROLS */}
+        <div style={{ background: "white", padding: "20px", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
           <div style={{ marginBottom: "15px" }}>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", marginBottom: "5px" }}>Start Point</label>
+            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", color: "#333", marginBottom: "5px" }}><span style={{ color: "green", marginRight: "5px" }}>●</span> Start Point</label>
             <div style={{ display: "flex", gap: "8px" }}>
-              <input value={startPoint ? `${startPoint[0].toFixed(4)}, ${startPoint[1].toFixed(4)}` : ""} placeholder="Click map..." readOnly style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #e2e8f0", backgroundColor: selectionMode === 'start' ? "#e6fffa" : "#fff" }} />
-              <button onClick={() => setSelectionMode('start')} style={{ background: "green", color: "white", border: "none", borderRadius: "6px", padding: "0 15px", cursor: "pointer" }}>Set</button>
+              <input value={startPoint ? `${startPoint[0].toFixed(4)}, ${startPoint[1].toFixed(4)}` : ""} placeholder="Click on map..." readOnly style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #e2e8f0", backgroundColor: selectionMode === 'start' ? "#e6fffa" : "#fff", outline: selectionMode === 'start' ? "2px solid green" : "none" }} />
+              <button onClick={() => setSelectionMode('start')} style={{ background: selectionMode === 'start' ? "green" : "#f0f0f0", color: selectionMode === 'start' ? "white" : "#333", border: "none", borderRadius: "6px", padding: "0 15px", cursor: "pointer", fontWeight: "bold" }}>Set</button>
             </div>
           </div>
           <div style={{ marginBottom: "15px" }}>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", marginBottom: "5px" }}>Destination</label>
+            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", color: "#333", marginBottom: "5px" }}><span style={{ color: "red", marginRight: "5px" }}>●</span> Destination</label>
             <div style={{ display: "flex", gap: "8px" }}>
-              <input value={endPoint ? `${endPoint[0].toFixed(4)}, ${endPoint[1].toFixed(4)}` : ""} placeholder="Click map..." readOnly style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #e2e8f0", backgroundColor: selectionMode === 'end' ? "#fff5f5" : "#fff" }} />
-              <button onClick={() => setSelectionMode('end')} style={{ background: "red", color: "white", border: "none", borderRadius: "6px", padding: "0 15px", cursor: "pointer" }}>Set</button>
+              <input value={endPoint ? `${endPoint[0].toFixed(4)}, ${endPoint[1].toFixed(4)}` : ""} placeholder="Click on map..." readOnly style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #e2e8f0", backgroundColor: selectionMode === 'end' ? "#fff5f5" : "#fff", outline: selectionMode === 'end' ? "2px solid red" : "none" }} />
+              <button onClick={() => setSelectionMode('end')} style={{ background: selectionMode === 'end' ? "red" : "#f0f0f0", color: selectionMode === 'end' ? "white" : "#333", border: "none", borderRadius: "6px", padding: "0 15px", cursor: "pointer", fontWeight: "bold" }}>Set</button>
             </div>
           </div>
           <button onClick={handleClearAll} style={{ width: "100%", marginTop: "10px", background: "#f8f9fa", color: "#666", border: "1px solid #e1e5e8", borderRadius: "6px", padding: "10px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" }}>Clear All</button>
