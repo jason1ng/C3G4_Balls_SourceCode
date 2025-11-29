@@ -141,7 +141,7 @@ export default function AQINotification() {
               // AQI >= 100 (Moderate) - Sensitive groups should be aware
               setNotification({
                 type: 'info',
-                title: '💡 Air Quality Notice - Sensitive Group',
+                title: 'Air Quality Notice - Sensitive Group',
                 message: `Air Quality Index at your location is ${result.estimatedAQI.toFixed(1)} (${aqiInfo.level}). As someone in a sensitive group, you may want to reduce prolonged outdoor activities.`,
                 aqi: result.estimatedAQI,
                 level: aqiInfo.level,
