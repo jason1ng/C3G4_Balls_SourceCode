@@ -15,6 +15,9 @@ import { fetchForecastTrend, fetchWindForecast } from '../../services/owmService
 import { generateForecast, getWindDirection } from '../../services/predictionService'; 
 import { fetchSealionResponse, ChatMessage } from '../../services/sealionService.jsx';
 import AQINotification from '../../components/AQINotification';
+import WindCompass from '../../components/WindCompass';
+import { db } from '../../contexts/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 import {
   MapPin, Flag, Navigation,
@@ -105,7 +108,7 @@ const chatReducer = (state, action) => {
 };
 
 export default function MapPage() {
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const navigate = useNavigate();
 
   const [centerPos, setCenterPos] = useState([3.1473, 101.6991]);
@@ -119,6 +122,7 @@ export default function MapPage() {
   const [forecastTrends, setForecastTrends] = useState(null);
   const [windForecast, setWindForecast] = useState(null);
   const [selectedDay, setSelectedDay] = useState(0); // 0 = Today
+  const [userLocation, setUserLocation] = useState(null); // User's saved location
 
   const [startPoint, setStartPoint] = useState(null);
   const [endPoint, setEndPoint] = useState(null);
@@ -151,6 +155,52 @@ export default function MapPage() {
     setStartPoint(null); setEndPoint(null); setRoutes([]);
     setSelectedRouteIdx(null); setSelectionMode(null); setExpandedRouteId(null);
   };
+
+  // Fetch user location from Firebase
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      if (!currentUser) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.latitude && userData.longitude) {
+            const userCoords = [userData.latitude, userData.longitude];
+            setUserLocation(userCoords);
+            console.log('User location loaded:', userCoords);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user location:', error);
+      }
+    };
+
+    fetchUserLocation();
+  }, [currentUser]);
+
+  // Fetch user location from Firebase
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      if (!currentUser) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          if (userData.latitude && userData.longitude) {
+            const userCoords = [userData.latitude, userData.longitude];
+            setUserLocation(userCoords);
+            console.log('User location loaded:', userCoords);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user location:', error);
+      }
+    };
+
+    fetchUserLocation();
+  }, [currentUser]);
 
   // --- INITIAL DATA LOAD ---
   useEffect(() => {
@@ -372,6 +422,9 @@ export default function MapPage() {
 
         {loading && <div style={{ position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: "white", padding: "10px 20px", borderRadius: "20px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>Loading Air Data...</div>}
 
+        {/* Wind Compass - positioned at top right of map */}
+        <WindCompass centerPosition={userLocation || centerPos} />
+
         <MapContainer center={centerPos} zoom={11} style={{ height: "100%", width: "100%" }}>
           <MapViewHandler centerPos={centerPos} />
 
@@ -416,6 +469,27 @@ export default function MapPage() {
 
           {startPoint && <Marker position={startPoint} icon={startIcon}><Popup>Start Point</Popup></Marker>}
           {endPoint && <Marker position={endPoint} icon={endIcon}><Popup>Destination</Popup></Marker>}
+          
+          {/* User's Home Location Marker - Red Pin */}
+          {userLocation && (
+            <Marker position={userLocation} icon={new L.Icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+              iconSize: [30, 48],
+              iconAnchor: [15, 48],
+              popupAnchor: [1, -40],
+              shadowSize: [41, 41]
+            })}>
+              <Popup>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '5px', fontSize: '14px', color: '#d32f2f' }}>🏠 Your Home Location</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    {userLocation[0].toFixed(6)}, {userLocation[1].toFixed(6)}
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          )}
 
           {/* --- RESTORED: Draw Routes on Map --- */}
           {routes.map((route, index) => {
