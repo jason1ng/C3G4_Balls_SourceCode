@@ -168,21 +168,45 @@ export default function MapPage() {
           {/* WIND LAYER (New) */}
           <WindLayer show={showWind} />
           
-          {/* Pollution Dots (only displayed when Show Air Quality Markers is enabled) */}
+          {/* Pollution Dots & Circles */}
           {showPollutionMarkers && airData.map((point, index) => {
-             const radiusInMeters = getRadiusInMetersForAQI(point.value);
-             const fillColor = getAQIColor(point.value);
-             
-             const PopupContent = (
-               <Popup>
-                  <div style={{ textAlign: 'center', minWidth: '150px' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: fillColor, marginBottom: '8px' }}>
-                      AQI: {point.value}
-                    </div>
-                    <div><strong>{point.location}</strong></div>
+            const radiusInMeters = getRadiusInMetersForAQI(point.value);
+            const fillColor = getAQIColor(point.value);
+
+            // Define the popup content once to reuse it
+            const PopupContent = (
+              <Popup>
+                <div style={{ textAlign: 'center', minWidth: '150px' }}>
+                  <div
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: fillColor,
+                      marginBottom: '8px',
+                      WebkitTextStroke: '0.5px black',   // outline thickness + color
+                      textStroke: '0.5px black'          // fallback for some browsers
+                    }}
+                  >
+                    AQI: {point.value}
                   </div>
-                </Popup>
-             );
+                  <div style={{ marginBottom: '6px' }}>
+                    <strong>{point.location}</strong>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    Last Updated: {new Date(point.lastUpdated).toLocaleString()}
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    color: '#888',
+                    marginTop: '8px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid #eee'
+                  }}>
+                    Radius: {(radiusInMeters / 1000).toFixed(1)} km
+                  </div>
+                </div>
+              </Popup>
+            );
 
             return (
               <React.Fragment key={`marker-${point.id || index}`}>
