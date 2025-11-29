@@ -167,8 +167,8 @@ export default function MapPage() {
           {/* WIND LAYER (New) */}
           <WindLayer show={showWind} />
           
-          {/* Pollution Dots */}
-          {airData.map((point, index) => {
+          {/* Pollution Dots (only displayed when Show Air Quality Markers is enabled) */}
+          {showPollutionMarkers && airData.map((point, index) => {
              const radiusInMeters = getRadiusInMetersForAQI(point.value);
              const fillColor = getAQIColor(point.value);
              
@@ -298,7 +298,7 @@ export default function MapPage() {
         {/* CONTROLS SECTION */}
         <div style={{ background: "white", padding: "12px", borderRadius: "10px", marginBottom: "15px", border: "1px solid #e1e5e8", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
            
-           {/* Base Layer Control */}
+          {/* Base Layer Control */}
            <div style={{ background: "white", padding: "0 0 10px 0", borderRadius: "10px", borderBottom: "1px solid #eee", marginBottom: "10px" }}>
                <div style={{ fontWeight: "600", color: "#0C2B4E", marginBottom: "10px" }}>Map Style 🗺️</div>
                <div style={{ display: "flex", gap: "10px" }}>
@@ -317,26 +317,22 @@ export default function MapPage() {
                </div>
            </div>
 
-           {/* Traffic Toggle */}
-           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
-             <input type="checkbox" id="trafficToggle" checked={showTraffic} onChange={(e) => setShowTraffic(e.target.checked)} style={{ width: "18px", height: "18px", marginRight: "10px", accentColor: "#0C2B4E" }} />
-             <label htmlFor="trafficToggle" style={{ fontWeight: "600", color: "#333", flex: 1 }}>Show Live Traffic 🚦</label>
-           </div>
+           {/* Single compact toggles block: Traffic, Wind, and Pollution markers */}
+          <div style={{ background: "white", padding: "12px", borderRadius: "10px", marginBottom: "0px", border: "1px solid #e1e5e8", display: "flex", flexDirection: "column", gap: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <input type="checkbox" id="trafficToggle" checked={showTraffic} onChange={(e) => setShowTraffic(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "10px", accentColor: "#0C2B4E" }} />
+              <label htmlFor="trafficToggle" style={{ cursor: "pointer", fontSize: "0.95rem", fontWeight: "600", color: "#333", flex: 1 }}>Show Live Traffic</label>
+            </div>
 
-           {/* Wind Toggle */}
-           <div style={{ display: "flex", alignItems: "center" }}>
-             <input type="checkbox" id="windToggle" checked={showWind} onChange={(e) => setShowWind(e.target.checked)} style={{ width: "18px", height: "18px", marginRight: "10px", accentColor: "#0C2B4E" }} />
-             <label htmlFor="windToggle" style={{ fontWeight: "600", color: "#333", flex: 1 }}>Show Wind Flow 🌬️</label>
-           </div>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <input type="checkbox" id="windToggle" checked={showWind} onChange={(e) => setShowWind(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "10px", accentColor: "#0C2B4E" }} />
+              <label htmlFor="windToggle" style={{ cursor: "pointer", fontSize: "0.95rem", fontWeight: "600", color: "#333", flex: 1 }}>Show Wind Flow</label>
+            </div>
 
-        <div style={{ background: "white", padding: "12px", borderRadius: "10px", marginBottom: "15px", border: "1px solid #e1e5e8", display: "flex", flexDirection: "column", gap: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <input type="checkbox" id="trafficToggle" checked={showTraffic} onChange={(e) => setShowTraffic(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "10px", accentColor: "#0C2B4E" }} />
-            <label htmlFor="trafficToggle" style={{ cursor: "pointer", fontSize: "0.95rem", fontWeight: "600", color: "#333", flex: 1 }}>Show Live Traffic Jam</label>
-          </div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <input type="checkbox" id="pollutionToggle" checked={showPollutionMarkers} onChange={(e) => setShowPollutionMarkers(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "10px", accentColor: "#0C2B4E" }} />
-            <label htmlFor="pollutionToggle" style={{ cursor: "pointer", fontSize: "0.95rem", fontWeight: "600", color: "#333", flex: 1 }}>Show Air Quality Markers</label>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <input type="checkbox" id="pollutionToggle" checked={showPollutionMarkers} onChange={(e) => setShowPollutionMarkers(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "10px", accentColor: "#0C2B4E" }} />
+              <label htmlFor="pollutionToggle" style={{ cursor: "pointer", fontSize: "0.95rem", fontWeight: "600", color: "#333", flex: 1 }}>Show Air Quality Markers</label>
+            </div>
           </div>
         </div>
 
@@ -434,15 +430,6 @@ export default function MapPage() {
                 );
               })}
             </div>
-          <div>
-            <h3 style={{ color: "#0C2B4E", fontSize: "1.1rem", borderBottom: "2px solid #e1e5e8", paddingBottom: "10px" }}>AI Route Analysis</h3>
-            {routes.map((route, i) => (
-              <div key={i} onClick={() => handleRouteSelect(i)} style={{ border: selectedRouteIdx === i ? "2px solid #0C2B4E" : "1px solid #ddd", borderRadius: "10px", padding: "15px", marginBottom: "10px", background: "white", cursor: "pointer" }}>
-                <h4 style={{ margin: "0 0 5px 0", color: i === 0 ? "#d32f2f" : "#28a745" }}>Route {i + 1}</h4>
-                <div style={{ fontSize: "0.9rem", color: "#555" }}>⏳ {formatTime(route.summary.totalTime)} | {(route.summary.totalDistance / 1000).toFixed(1)} km</div>
-                <div style={{ fontSize: "0.8rem", marginTop: "5px" }}>Pollution Impact: <b>{route.pollutionLevel} AQI</b></div>
-              </div>
-            ))}
           </div>
         )}
 
