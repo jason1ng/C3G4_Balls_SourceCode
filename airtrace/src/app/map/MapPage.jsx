@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import 'leaflet/dist/leaflet.css'; 
 import { fetchAirQualityData, getAQIColor } from '../../services/openaqService';
 import HeatmapLayer from './HeatmapLayer';
 
@@ -14,29 +14,16 @@ export default function MapPage() {
       setLoading(true);
       const results = await fetchAirQualityData();
       
-      const safeResults = results
-        .map(r => {
-            // FIX: Ensure coordinates are [Lat, Lng]
-            // If the first number is > 90, it's definitely Longitude (Lat can't be > 90)
-            let lat = r.coordinates[0];
-            let lng = r.coordinates[1];
+      // Strict safety filter to prevent Map crashes
+      const safeResults = results.filter(r => 
+        r.value !== null &&
+        Array.isArray(r.coordinates) && 
+        r.coordinates.length === 2 &&
+        typeof r.coordinates[0] === 'number' && !isNaN(r.coordinates[0]) &&
+        typeof r.coordinates[1] === 'number' && !isNaN(r.coordinates[1])
+      );
 
-            if (Math.abs(lat) > 90) {
-                // SWAP THEM
-                return { ...r, coordinates: [lng, lat] };
-            }
-            return r;
-        })
-        .filter(r => 
-          r.value !== null &&
-          // Filter strictly for Malaysia's approximate box
-          r.coordinates[0] > 0 && r.coordinates[0] < 8 &&   // Latitude approx 0 to 8
-          r.coordinates[1] > 99 && r.coordinates[1] < 120   // Longitude approx 99 to 120
-        );
-
-      console.log(`Map loaded with ${safeResults.length} valid Malaysia points.`);
-      console.log("Sample Point:", safeResults[0]); // Check console to see if Lat is ~4 and Lng ~101
-      
+      console.log(`Map loaded with ${safeResults.length} valid points.`);
       setAirData(safeResults);
       setLoading(false);
     };
@@ -56,10 +43,10 @@ export default function MapPage() {
 
   return (
     <div style={{ height: "100vh", width: "100vw", position: "relative" }}>
-
+      
       {loading && (
         <div style={{
-          position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)",
+          position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)", 
           zIndex: 9999, background: "white", padding: "10px 20px", borderRadius: "20px",
           boxShadow: "0 2px 10px rgba(0,0,0,0.2)", fontWeight: "bold"
         }}>
@@ -71,13 +58,6 @@ export default function MapPage() {
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <TileLayer
-          attribution='TomTom Traffic'
-          url="https://api.tomtom.com/traffic/map/4/tile/flow/absolute/{z}/{x}/{y}.png?key=a6d3383c-e57d-461d-886b-c95a5f4c53a1"
-          maxZoom={18}
-          minZoom={0}
-          zIndex={1000}
         />
 
         {/* Render Heatmap only if we have data */}
