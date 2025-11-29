@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { fetchAirQualityData, getAQIColor } from '../../services/openaqService';
-import HeatmapLayer from './HeatmapLayer';
+import { fetchAirQualityData, getAQIColor } from '../../services/aqicnService'; // <-- UPDATED
 
 export default function MapPage() {
   const [centerPos] = useState([4.2105, 101.9758]); // Center of Malaysia
@@ -30,31 +29,17 @@ export default function MapPage() {
     loadData();
   }, []);
 
-  // --- FIX 1: useMemo ---
-  // This prevents the heatmap data from being "new" on every render.
-  // This stops the map from destroying/re-creating the layer 60 times a second.
-  const heatmapPoints = useMemo(() => {
-    return airData.map(point => [
-      point.coordinates[0], // lat
-      point.coordinates[1], // lng
-      point.value           // intensity
-    ]);
-  }, [airData]);
+  if (loading) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2>Loading Air Quality Data...</h2>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ height: "100vh", width: "100vw", position: "relative" }}>
-
-      {loading && (
-        <div style={{
-          position: "absolute", top: 20, left: "50%", transform: "translateX(-50%)",
-          zIndex: 9999, background: "white", padding: "10px 20px", borderRadius: "20px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.2)", fontWeight: "bold"
-        }}>
-          Loading Live Air Data...
-        </div>
-      )}
-
-      <MapContainer center={centerPos} zoom={6} style={{ height: "100%", width: "100%" }}>
+    <div style={{ height: "100vh", width: "100vw" }}>
+      <MapContainer center={centerPos} zoom={7} scrollWheelZoom={true} style={{ height: "100%", width: "100%" }}>
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -67,14 +52,12 @@ export default function MapPage() {
           zIndex={1000}
         />
 
-        {/* Render Heatmap only if we have data */}
-        {heatmapPoints.length > 0 && <HeatmapLayer points={heatmapPoints} />}
+        {/* The HeatmapLayer rendering has been removed */}
 
-        {/* --- FIX 2: Unique Keys --- */}
+        {/* Render CircleMarkers for each air quality station */}
         {airData.map((point, index) => (
           <CircleMarker 
             // Use point.id if available, otherwise fallback to index.
-            // This fixes the "Each child in a list should have a unique key" warning.
             key={point.id || index} 
             center={point.coordinates} 
             radius={5} 
@@ -86,15 +69,16 @@ export default function MapPage() {
             }}
           >
             <Popup>
-              <div style={{ textAlign: 'center' }}>
+              <div>
                 <strong>{point.location}</strong>
                 <br />
-                PM2.5: <b>{point.value}</b> µg/m³
+                AQI: {point.value}
+                <br />
+                Last Updated: {new Date(point.lastUpdated).toLocaleString()}
               </div>
             </Popup>
           </CircleMarker>
         ))}
-
       </MapContainer>
     </div>
   );
