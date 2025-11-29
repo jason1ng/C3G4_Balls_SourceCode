@@ -42,8 +42,6 @@ The application combines multiple data sources to provide a comprehensive air qu
 
 ---
 
----
-
 ## Attribution and Credits
 
 This project is built upon the work of several excellent open-source projects and utilizes data from external API providers. We extend our gratitude to them:
