@@ -48,14 +48,16 @@ const formatTime = (seconds) => {
 
 /**
  * Calculates a radius size (in meters) for the AQI Circle.
- * Makes highly polluted areas look visually larger/more concerning.
+ * 1km
  */
-const getRadiusInMetersForAQI = (aqi) => {
-  if (aqi === null) return 0;
-  // Use a logarithmic scale for better visualization on a map
-  return 2000 * Math.log(aqi + 1); 
-};
-
+function getRadiusInMetersForAQI(aqi) {
+  if (aqi <= 50) return 500;
+  if (aqi <= 100) return 1000;
+  if (aqi <= 150) return 2000;
+  if (aqi <= 200) return 3500;
+  if (aqi <= 300) return 6000;
+  return 10000;
+}
 
 // --- MAP CLICK HANDLER COMPONENT ---
 
