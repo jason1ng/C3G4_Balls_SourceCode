@@ -50,7 +50,7 @@ The application relies on several external APIs and Firebase services. You **mus
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone "https://github.com/jason1ng/airtrace.git"
 cd airtrace
 
 # Install all dependencies (from package.json)
