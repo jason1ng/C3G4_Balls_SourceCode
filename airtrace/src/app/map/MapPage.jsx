@@ -70,6 +70,7 @@ export default function MapPage() {
   const [routes, setRoutes] = useState([]);
   const [selectedRouteIdx, setSelectedRouteIdx] = useState(null);
   const [showTraffic, setShowTraffic] = useState(false);
+  const [showPollutionMarkers, setShowPollutionMarkers] = useState(true);
 
   const handleLogout = async () => {
     try { await logout(); navigate('/login'); } catch (error) { console.error(error); }
@@ -131,7 +132,7 @@ export default function MapPage() {
           )}
 
           {/* Pollution Dots & Circles */}
-          {airData.map((point, index) => {
+          {showPollutionMarkers && airData.map((point, index) => {
             const radiusInMeters = getRadiusInMetersForAQI(point.value);
             const fillColor = getAQIColor(point.value);
 
@@ -139,12 +140,16 @@ export default function MapPage() {
             const PopupContent = (
               <Popup>
                 <div style={{ textAlign: 'center', minWidth: '150px' }}>
-                  <div style={{
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    color: fillColor,
-                    marginBottom: '8px'
-                  }}>
+                  <div
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: fillColor,
+                      marginBottom: '8px',
+                      WebkitTextStroke: '0.5px black',   // outline thickness + color
+                      textStroke: '0.5px black'          // fallback for some browsers
+                    }}
+                  >
                     AQI: {point.value}
                   </div>
                   <div style={{ marginBottom: '6px' }}>
@@ -169,12 +174,22 @@ export default function MapPage() {
             return (
               <React.Fragment key={`marker-${point.id || index}`}>
                 {/* The Center Point - Has Popup */}
-                <CircleMarker center={point.coordinates} radius={4} pathOptions={{ color: 'transparent', fillColor: fillColor, fillOpacity: 0.9 }}>
+                <CircleMarker
+                  center={point.coordinates}
+                  radius={4}
+                  pathOptions={{
+                    color: 'white',        // outline color
+                    weight: 2,             // outline thickness
+                    fillColor: fillColor,  // inside color
+                    fillOpacity: 0.9
+                  }}
+                >
                   {PopupContent}
                 </CircleMarker>
 
+
                 {/* The Large Radius Circle - NOW HAS POPUP TOO */}
-                <Circle center={point.coordinates} radius={radiusInMeters} pathOptions={{ color: fillColor, fillColor: fillColor, fillOpacity: 0.15, weight: 1 }}>
+                <Circle center={point.coordinates} radius={radiusInMeters} pathOptions={{ color: fillColor, fillColor: fillColor, fillOpacity: 0.25, weight: 1 }}>
                   {PopupContent}
                 </Circle>
               </React.Fragment>
@@ -239,7 +254,7 @@ export default function MapPage() {
                     )}
                     {route.isRecommended && (
                       <div style={{ marginTop: '8px', padding: '4px 8px', background: '#28a745', color: 'white', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
-                        ✅ Recommended
+                        Recommended
                       </div>
                     )}
                   </div>
@@ -268,9 +283,15 @@ export default function MapPage() {
           <button onClick={handleLogout} style={{ background: "white", color: "#d32f2f", border: "1px solid #ffcccb", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "bold" }}>Log Out</button>
         </div>
 
-        <div style={{ background: "white", padding: "12px", borderRadius: "10px", marginBottom: "15px", border: "1px solid #e1e5e8", display: "flex", alignItems: "center", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
-          <input type="checkbox" id="trafficToggle" checked={showTraffic} onChange={(e) => setShowTraffic(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "10px", accentColor: "#0C2B4E" }} />
-          <label htmlFor="trafficToggle" style={{ cursor: "pointer", fontSize: "0.95rem", fontWeight: "600", color: "#333", flex: 1 }}>Show Live Traffic Jam 🚦</label>
+        <div style={{ background: "white", padding: "12px", borderRadius: "10px", marginBottom: "15px", border: "1px solid #e1e5e8", display: "flex", flexDirection: "column", gap: "10px", boxShadow: "0 2px 5px rgba(0,0,0,0.03)" }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <input type="checkbox" id="trafficToggle" checked={showTraffic} onChange={(e) => setShowTraffic(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "10px", accentColor: "#0C2B4E" }} />
+            <label htmlFor="trafficToggle" style={{ cursor: "pointer", fontSize: "0.95rem", fontWeight: "600", color: "#333", flex: 1 }}>Show Live Traffic Jam</label>
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <input type="checkbox" id="pollutionToggle" checked={showPollutionMarkers} onChange={(e) => setShowPollutionMarkers(e.target.checked)} style={{ width: "18px", height: "18px", cursor: "pointer", marginRight: "10px", accentColor: "#0C2B4E" }} />
+            <label htmlFor="pollutionToggle" style={{ cursor: "pointer", fontSize: "0.95rem", fontWeight: "600", color: "#333", flex: 1 }}>Show Air Quality Markers</label>
+          </div>
         </div>
 
         <div style={{ background: "white", padding: "20px", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
@@ -289,13 +310,13 @@ export default function MapPage() {
               <button onClick={() => setSelectionMode('end')} style={{ background: selectionMode === 'end' ? "red" : "#f0f0f0", color: selectionMode === 'end' ? "white" : "#333", border: "none", borderRadius: "6px", padding: "0 15px", cursor: "pointer", fontWeight: "bold" }}>Set</button>
             </div>
           </div>
-          <button onClick={handleClearAll} style={{ width: "100%", marginTop: "10px", background: "#f8f9fa", color: "#666", border: "1px solid #e1e5e8", borderRadius: "6px", padding: "10px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" }}>🔄 Clear All</button>
+          <button onClick={handleClearAll} style={{ width: "100%", marginTop: "10px", background: "#f8f9fa", color: "#666", border: "1px solid #e1e5e8", borderRadius: "6px", padding: "10px", cursor: "pointer", fontWeight: "600", fontSize: "0.9rem" }}>Clear All</button>
 
           <div style={{ fontSize: "0.85rem", color: "#666", textAlign: "center", fontStyle: "italic", marginTop: "15px" }}>
-            {selectionMode === 'start' ? "📍 Click map to set Start Point" :
-              selectionMode === 'end' ? "🏁 Click map to set Destination" :
-                startPoint && endPoint ? "✅ Points Set. Calculating..." :
-                  "👆 Click 'Set' to enable map selection"}
+            {selectionMode === 'start' ? "Click map to set Start Point" :
+              selectionMode === 'end' ? "Click map to set Destination" :
+                startPoint && endPoint ? "Points Set. Calculating..." :
+                  "Click 'Set' to enable map selection"}
           </div>
         </div>
 
