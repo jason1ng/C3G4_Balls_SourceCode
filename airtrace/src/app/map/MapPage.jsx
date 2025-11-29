@@ -14,16 +14,29 @@ export default function MapPage() {
       setLoading(true);
       const results = await fetchAirQualityData();
       
-      // Strict safety filter to prevent Map crashes
-      const safeResults = results.filter(r => 
-        r.value !== null &&
-        Array.isArray(r.coordinates) && 
-        r.coordinates.length === 2 &&
-        typeof r.coordinates[0] === 'number' && !isNaN(r.coordinates[0]) &&
-        typeof r.coordinates[1] === 'number' && !isNaN(r.coordinates[1])
-      );
+      const safeResults = results
+        .map(r => {
+            // FIX: Ensure coordinates are [Lat, Lng]
+            // If the first number is > 90, it's definitely Longitude (Lat can't be > 90)
+            let lat = r.coordinates[0];
+            let lng = r.coordinates[1];
 
-      console.log(`Map loaded with ${safeResults.length} valid points.`);
+            if (Math.abs(lat) > 90) {
+                // SWAP THEM
+                return { ...r, coordinates: [lng, lat] };
+            }
+            return r;
+        })
+        .filter(r => 
+          r.value !== null &&
+          // Filter strictly for Malaysia's approximate box
+          r.coordinates[0] > 0 && r.coordinates[0] < 8 &&   // Latitude approx 0 to 8
+          r.coordinates[1] > 99 && r.coordinates[1] < 120   // Longitude approx 99 to 120
+        );
+
+      console.log(`Map loaded with ${safeResults.length} valid Malaysia points.`);
+      console.log("Sample Point:", safeResults[0]); // Check console to see if Lat is ~4 and Lng ~101
+      
       setAirData(safeResults);
       setLoading(false);
     };
