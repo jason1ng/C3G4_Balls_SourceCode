@@ -39,12 +39,12 @@ export default function MapPage() {
 
   // Get radius in meters for Circle (scales with zoom, maintains constant geographic area)
   function getRadiusInMetersForAQI(aqi) {
-    if (aqi <= 50) return 5000; // 5 km radius
-    if (aqi <= 100) return 10000; // 10 km radius
-    if (aqi <= 150) return 15000; // 15 km radius
-    if (aqi <= 200) return 20000; // 20 km radius
-    if (aqi <= 300) return 30000; // 30 km radius
-    return 40000; // 40 km radius
+    if (aqi <= 50) return 500; // 0.5 km radius
+    if (aqi <= 100) return 1000; // 1 km radius
+    if (aqi <= 150) return 2000; // 2 km radius
+    if (aqi <= 200) return 3500; // 3.5 km radius
+    if (aqi <= 300) return 6000; // 6 km radius
+    return 10000; // 10 km radius
   }
 
   return (
@@ -102,7 +102,35 @@ export default function MapPage() {
                   fillOpacity: 0.18,
                   weight: 1
                 }}
-              />
+              >
+                <Popup>
+                  <div style={{ textAlign: 'center', minWidth: '150px' }}>
+                    <div style={{
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: fillColor,
+                      marginBottom: '8px'
+                    }}>
+                      AQI: {point.value}
+                    </div>
+                    <div style={{ marginBottom: '6px' }}>
+                      <strong>{point.location}</strong>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                      Last Updated: {new Date(point.lastUpdated).toLocaleString()}
+                    </div>
+                    <div style={{
+                      fontSize: '11px',
+                      color: '#888',
+                      marginTop: '8px',
+                      paddingTop: '8px',
+                      borderTop: '1px solid #eee'
+                    }}>
+                      Radius: {(radiusInMeters / 1000).toFixed(1)} km
+                    </div>
+                  </div>
+                </Popup>
+              </Circle>
             </React.Fragment>
           );
         })}
