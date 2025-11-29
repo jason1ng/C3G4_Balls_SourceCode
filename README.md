@@ -1,8 +1,8 @@
-# airtrace
+# AirTrace
 
 A modern, real-time environmental and air quality monitoring application built with React, Leaflet, and Firebase. AirTrace allows users to visualize pollution, forecast future conditions, and optimize their travel based on air quality.
 
-## ✨ Key Features
+## Key Features
 
 The application combines multiple data sources to provide a comprehensive air quality experience:
 
