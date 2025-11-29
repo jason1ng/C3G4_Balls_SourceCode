@@ -9,7 +9,7 @@ The application combines multiple data sources to provide a comprehensive air qu
 ### Core Mapping & Data Visualization
 * **Real-Time AQI Map:** Visualizes current Air Quality Index (AQI) data using Leaflet markers and colors, sourced from the **AQICN API**.
 * **Dynamic Wind Layer:** A high-fidelity, animated wind velocity overlay using `leaflet-velocity`, providing a "Windy-like" view of current and forecasted wind patterns (via **OpenWeatherMap**).
-* **Time-Series Forecasting:** A **Timeline Control** allows users to switch between **Today, Tomorrow, +2 Days, and +3 Days** to view predicted AQI and wind conditions. (The wind service is already highly optimized for SEA regions like Malaysia)
+* **Time-Series Forecasting:** A **Timeline Control** allows users to switch between **Today, Tomorrow, +2 Days, and +3 Days** to view predicted AQI and wind conditions. (The wind service is optimized for SEA regions like Malaysia)
 
 ### Smart Routing & Navigation
 * **AQI-Optimized Routing:** Integration with `leaflet-routing-machine` to calculate multiple travel routes.
