@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, memo, useReducer } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Circle, Popup, useMapEvents, Marker, useMap, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -9,8 +9,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import RoutingControl from './RoutingControl';
 import WindLayer from './WindLayer';
 import { fetchAirQualityData, getAQIColor } from '../../services/aqicnService';
+import { fetchSealionResponse, ChatMessage } from '../../services/sealionService.jsx';
 import AQINotification from '../../components/AQINotification';
-import { fetchSealionResponse } from '../../services/sealionService';
 
 import {
   MapPin, Flag, Navigation,
@@ -112,6 +112,15 @@ const getDirectionIcon = (text, type) => {
 // --- MAIN COMPONENT ---
 // ----------------------------------------------------------------------------------
 
+const chatReducer = (state, action) => {
+  switch (action.type) {
+    case 'ADD_MESSAGE':
+      return [...state, action.payload];
+    default:
+      return state;
+  }
+};
+
 export default function MapPage() {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -135,12 +144,12 @@ export default function MapPage() {
 
   // AI Chatbot State
   const [showChatbox, setShowChatbox] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
+  const [chatMessages, dispatch] = useReducer(chatReducer, [
     { type: 'bot', text: 'Hello! I\'m your AI route assistant. I can help you find the cleanest air quality routes, answer questions about pollution levels, and provide navigation tips. How can I help you today?' }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef(null);
-
+  const inputRef = useRef(null);
 
   const [expandedRouteId, setExpandedRouteId] = useState(null);
 
@@ -197,25 +206,22 @@ export default function MapPage() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    const userMessage = inputRef.current.value.trim();
+    if (!userMessage) return;
 
-    // Add user message
-    const userMsg = { type: 'user', text: inputMessage };
-    setChatMessages((prev) => [...prev, userMsg]);
-    setInputMessage('');
+    // Add the user's message to the chat
+    dispatch({ type: 'ADD_MESSAGE', payload: { type: 'user', text: userMessage } });
+    inputRef.current.value = ''; // Clear the input field
 
     // Add typing indicator
     const typingIndicator = { type: 'bot', text: 'Typing...' };
-    setChatMessages((prev) => [...prev, typingIndicator]);
+    dispatch({ type: 'ADD_MESSAGE', payload: typingIndicator });
 
-    const result = await fetchSealionResponse(userMsg.text);
+    // Fetch response from Sealion API
+    const result = await fetchSealionResponse(userMessage);
 
     // Replace typing indicator with actual response
-    setChatMessages((prev) => {
-      const updatedMessages = [...prev];
-      updatedMessages.pop(); // Remove typing indicator
-      return [...updatedMessages, { type: 'bot', text: result.reply }];
-    });
+    dispatch({ type: 'ADD_MESSAGE', payload: { type: 'bot', text: result.reply } });
   };
 
   const generateAIResponse = (userMessage) => {
@@ -344,69 +350,11 @@ export default function MapPage() {
               background: '#f8f9fa',
               display: 'flex',
               flexDirection: 'column',
-              gap: '15px'
+              gap: '15px',
             }}
           >
             {chatMessages.map((msg, idx) => (
-              <div
-                key={idx}
-                style={{
-                  display: 'flex',
-                  justifyContent: msg.type === 'user' ? 'flex-end' : 'flex-start',
-                  alignItems: 'flex-start',
-                  gap: '10px'
-                }}
-              >
-                {msg.type === 'bot' && (
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #1D546C 0%, #0C2B4E 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      fontSize: '18px'
-                    }}
-                  >
-                    🤖
-                  </div>
-                )}
-                <div
-                  style={{
-                    maxWidth: '75%',
-                    padding: '12px 16px',
-                    borderRadius: msg.type === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                    background: msg.type === 'user' ? '#667eea' : 'white',
-                    color: msg.type === 'user' ? 'white' : '#333',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    fontSize: '14px',
-                    lineHeight: '1.5',
-                    whiteSpace: 'pre-wrap'
-                  }}
-                >
-                  {msg.text}
-                </div>
-                {msg.type === 'user' && (
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: '#e0e0e0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      fontSize: '18px'
-                    }}
-                  >
-                    👤
-                  </div>
-                )}
-              </div>
+              <ChatMessage key={idx} msg={msg} />
             ))}
             <div ref={messagesEndRef} />
           </div>
@@ -416,8 +364,7 @@ export default function MapPage() {
             <div style={{ display: 'flex', gap: '10px' }}>
               <input
                 type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                ref={inputRef}
                 placeholder="Ask me anything..."
                 style={{
                   flex: 1,
@@ -425,7 +372,7 @@ export default function MapPage() {
                   borderRadius: '25px',
                   border: '1px solid #e1e5e8',
                   outline: 'none',
-                  fontSize: '14px'
+                  fontSize: '14px',
                 }}
               />
               <button
@@ -442,7 +389,7 @@ export default function MapPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '20px',
-                  boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
+                  boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
                 }}
               >
                 ➤
